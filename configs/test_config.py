@@ -37,7 +37,8 @@ nonlinearity_rule = 'supralinear'
 gamma = 1
 
 ####### Input #######
-degree = [0, 90, 180, 270]
+degree = 90
+# Staitonary input, otherwise degree = [0,90,180,270]
 
 input_cs_steady = [0]
 input_cc_steady = [0]
