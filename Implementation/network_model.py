@@ -3,8 +3,8 @@ import sys
 sys.path.append(abspath('') + sep + pardir + sep )
 import numpy as np
 import time
-import tools as snt
-import integration_methods as im
+import Implementation.tools as snt
+import Implementation.integration_methods as im
 
 class SimpleNetwork:
     def __init__(self,
