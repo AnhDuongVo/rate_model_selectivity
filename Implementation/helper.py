@@ -42,7 +42,8 @@ def distributionInput(a_data,b_data,spatialF, temporalF, orientation, spatialPha
 
     return (inputs)
 
-def distributionInput_negative(a_data,b_data,spatialF, temporalF, orientation, spatialPhase, amplitude, T, steady_input, N):
+def distributionInput_thalamus(a_data,b_data,spatialF, temporalF, orientation, spatialPhase,
+                               amplitude, T, steady_input, N, thal_scalar, thal_prop):
     """
     Generates a moving bar as input to CS, CC, PV, SST.
 
@@ -55,26 +56,41 @@ def distributionInput_negative(a_data,b_data,spatialF, temporalF, orientation, s
         inputs_p = []
 
         if steady_input[i] > 0.5:
+            inputs_p = np.ones((T,N[i]))*amplitude[i]
+            """
             for t in range(T):
-                inputs_p.append(amplitude[i] * np.cos(
+                input_item = amplitude[i] * np.cos(
                     spatialF * a_data[popu[0]:popu[1]] * np.cos(orientation) +
-                    spatialF * b_data[popu[0]:popu[1]] * np.sin(orientation) - spatialPhase)
-                                       * np.cos(temporalF))
-            inputs_p = np.array(inputs_p)
+                    spatialF * b_data[popu[0]:popu[1]] * np.sin(orientation) - spatialPhase)*np.cos(temporalF) + amplitude[i]
+
+                # thalamus input
+                input_item[:thal_prop[i]] *= thal_scalar[i]
+
+                inputs_p.append(input_item)"""
         else:
             for t in range(T):
-                inputs_p.append(amplitude[i] * np.cos(
+                input_item = amplitude[i] * np.cos(
                     spatialF * a_data[popu[0]:popu[1]] * np.cos(orientation) +
-                    spatialF * b_data[popu[0]:popu[1]] * np.sin(orientation) - spatialPhase)
-                                       * np.cos(temporalF * t))
-            inputs_p = np.array(inputs_p)
+                    spatialF * b_data[popu[0]:popu[1]] * np.sin(orientation) - spatialPhase)* np.cos(temporalF * t) + amplitude[i]
 
+                # thalamus input
+                input_item[:thal_prop[i]] *= thal_scalar[i]
+
+                inputs_p.append(input_item)
+
+        inputs_p_all.append(np.array(inputs_p))
         i += 1
-        inputs_p_all.append(inputs_p)
 
     inputs = np.concatenate((inputs_p_all), axis=1)
 
     return (inputs)
+
+def get_thal_scalar(degree=0,scalars=[1.1,1.3]):
+    thal_scalar = np.ones((4,4))
+    thal_scalar[degree][:2] = scalars[1]
+    thal_scalar[(degree+1)%4][:2] = scalars[0]
+    thal_scalar[(degree+3)%4][:2] = scalars[0]
+    return(thal_scalar)
 
 def create_synapses(N_pre, N_post, c, same_population=False):
     """
@@ -142,7 +158,7 @@ def generate_connectivity(N, p, w_initial, w_noise):
                                                                                              w_noise)
     return (W_rec.T)
 
-def calculate_selectivity_sbi(activity_popu):
+def calculate_selectivity_test(activity_popu):
     """
     Calculate mean and std of selectivity.
 
@@ -154,6 +170,11 @@ def calculate_selectivity_sbi(activity_popu):
 
     for population in range(len(activity_popu)):
         preferred_orientation = np.argmax(activity_popu[population], axis=0)
+        #print('Popu:',population)
+        #print('0',np.count_nonzero(preferred_orientation == 0))
+        #print('1', np.count_nonzero(preferred_orientation == 1))
+        #print('2', np.count_nonzero(preferred_orientation == 2))
+        #print('3', np.count_nonzero(preferred_orientation == 3))
 
         os, ds, os_paper = [], [], []
 
@@ -221,9 +242,9 @@ def calculate_selectivity(activity_popu):
             # activity of opposite stimulus
             s_oppo = activity_popu[population][(s_max_index + 2) % 4][neuron]
 
-            os.append((s_pref_orient - s_orth) / (s_pref_orient + s_orth))
-            ds.append((s_pref - s_oppo) / (s_pref + s_oppo))
-            os_paper.append((s_pref - s_orth) / (s_pref + s_orth))
+            os.append(np.abs(s_pref_orient - s_orth) / (s_pref_orient + s_orth))
+            ds.append(np.abs(s_pref - s_oppo) / (s_pref + s_oppo))
+            os_paper.append(np.abs(s_pref - s_orth) / (s_pref + s_orth))
 
         os_mean_data.append(np.mean(os))
         os_std_data.append(np.std(os))

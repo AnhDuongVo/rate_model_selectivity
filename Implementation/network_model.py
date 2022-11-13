@@ -19,19 +19,15 @@ class SimpleNetwork:
                 Ttau=6,
                 update_function='version_normal',
                 learning_rule='none',
-                gamma=1,
-                W_structure=None):
+                gamma=1):
         self.W_rec =W_rec
         self.W_input=W_project
-        if W_structure is not None:
-            self.W_structure=W_structure
-        else:
-            self.W_structure=np.ones((W_rec.shape[0], W_project.shape[-1]))
+        self.W_structure=np.ones((W_rec.shape[0], W_project.shape[-1]))
         self.delta_t = delta_t
         self.tau=tau
         self.tau_learn=tau_learn
         self.tau_threshold=tau_threshold
-        self.tsteps=int((Ttau*tau)/delta_t)
+        self.tsteps=int((Ttau*np.max(tau))/delta_t)
         self.number_steps_before_learning = 5000
         self.number_timepoints_plasticity = int(-1*(self.tau_threshold/self.delta_t)*np.log(0.1))
         self.update_function=update_function
@@ -89,35 +85,18 @@ class SimpleNetwork:
         Ntotal = self.tsteps
         all_act=[]
         all_act.append(start_activity)
-        all_weights=[]
-        all_weights.append(self.W_input)
         
         inputs_time = self._check_input(inputs)
         for step in range(Ntotal):
             new_act=self.integrator_function(self.update_act,  #intergation method
                               all_act[-1],  #general parameters     
                               delta_t=self.delta_t,
-                              tau=self.tau, w_rec=self.W_rec , w_input=all_weights[-1], #kwargs
+                              tau=self.tau, w_rec=self.W_rec , w_input=self.W_input, #kwargs
                               Input=inputs_time[step],            
                               nonlinearity=self.np_nonlinearity, )
             all_act.append(new_act) # append new activity to use for learning
-            
-            if step<self.number_steps_before_learning:# or not(step%100==0): # added not(step%100...)
-                new_weights = all_weights[-1]
-            else:
-                new_weights = self.integrator_function(self.learningrule,   #learning rule
-                                         all_weights[-1], #general parameters 
-                                         delta_t=self.delta_t, #kwargs
-                                         tau=self.tau, tau_learn=self.tau_learn, 
-                                         tau_threshold=self.tau_threshold,
-                                         w_rec=self.W_rec , w_input=self.W_input,
-                                         w_struct_mask=self.W_structure,
-                                         Input=inputs_time[step], 
-                                         prev_act=all_act[-self.number_timepoints_plasticity:], 
-                                         nonlinearity=self.np_nonlinearity,)
 
-            all_weights.append(new_weights)
-        return all_act, all_weights
+        return all_act
             
         
         

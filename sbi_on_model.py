@@ -7,7 +7,7 @@ import os
 
 import Implementation.network_model as nm
 from Implementation.helper import distributionInput, generate_connectivity, \
-    calculate_selectivity_sbi,plot_activity
+    calculate_selectivity_test,plot_activity
 import configs.test_config_sbi as p
 
 def run_simulation(params):
@@ -52,8 +52,8 @@ def run_simulation(params):
         W_project_initial = np.eye(num_neurons)
 
         # initial activity
-        initial_values = np.random.uniform(low=0, high=1, size=(sum(N),))
-
+        #initial_values = np.random.uniform(low=0, high=1, size=(sum(N),))
+        initial_values = np.zeros((sum(N),))
         activity_data = []
         success = 0
         a_data = np.cos(np.random.uniform(0, np.pi, (np.sum(N),)))
@@ -71,9 +71,8 @@ def run_simulation(params):
             inputs = distributionInput(a_data=a_data,b_data=b_data,
                             spatialF=spatialF,temporalF=temporalF,orientation=g,
                             spatialPhase=spatialPhase,amplitude=amplitude,T=Sn.tsteps,steady_input=steady_input,N = N)
-
             # run
-            activity, w = Sn.run(inputs, initial_values)
+            activity = Sn.run(inputs, initial_values)
             activity = np.asarray(activity)
 
             # check nan
@@ -112,7 +111,7 @@ def run_simulation(params):
                 n_rel.append(n_on/N[popu])
             n_rel_all.append(n_rel)
 
-            os_mean, ds_mean, os_paper_mean= calculate_selectivity_sbi(activity_all)
+            os_mean, ds_mean, os_paper_mean= calculate_selectivity_test(activity_all)
             os_mean_all.append(os_mean)
             ds_mean_all.append(ds_mean)
             os_paper_mean_all.append(os_paper_mean)
@@ -147,4 +146,6 @@ def run_simulation(params):
     return row
 
 ############### prepare csv file ###############
-print(run_simulation(np.array([0,0,0,0,0.5,0.5,0,0,1,1,1])))
+print(run_simulation(np.array([0,0,0,0,
+                               1,1,1,1,
+                               1,1,1])))
