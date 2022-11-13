@@ -3,8 +3,8 @@ import sys
 sys.path.append(abspath('') + sep + pardir + sep )
 import numpy as np
 import time
-import Implementation.tools as snt
-import Implementation.integration_methods as im
+import tools as snt
+import integration_methods as im
 
 class SimpleNetwork:
     def __init__(self,
@@ -72,6 +72,9 @@ class SimpleNetwork:
             raise Exception("Unknown integrator ({0})".format(self.integrator))
     
     def _check_input(self, inputs):
+        '''
+        Make sure the input is of the same type and structure.
+        '''
         Ntotal = self.tsteps
         assert inputs.shape[-1]==self.W_input.shape[-1]
         if len(inputs.shape)==1:            
@@ -88,6 +91,7 @@ class SimpleNetwork:
         
         inputs_time = self._check_input(inputs)
         for step in range(Ntotal):
+            # For each update, first update the act such that the neuron activation level get updated
             new_act=self.integrator_function(self.update_act,  #intergation method
                               all_act[-1],  #general parameters     
                               delta_t=self.delta_t,
@@ -95,7 +99,7 @@ class SimpleNetwork:
                               Input=inputs_time[step],            
                               nonlinearity=self.np_nonlinearity, )
             all_act.append(new_act) # append new activity to use for learning
-
+            
         return all_act
             
         
