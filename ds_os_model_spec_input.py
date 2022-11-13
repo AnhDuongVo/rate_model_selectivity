@@ -19,7 +19,9 @@ else:
 np.random.seed(42)
 
 def run_simulation(input_cs_steady, input_cc_steady, input_pv_steady, input_sst_steady,
-    input_cs_amplitude, input_cc_amplitude, input_pv_amplitude, input_sst_amplitude,cc_cs_weight,sst_vary,pv_vary,
+    input_cs_amplitude, input_cc_amplitude, input_pv_amplitude, input_sst_amplitude,
+    tau_cs,tau_cc,tau_pv,tau_sst,
+    cc_cs_weight,sst_vary,pv_vary,
     spatialF, temporalF, spatialPhase,start_time,title):
 
     # network parameters
@@ -28,16 +30,14 @@ def run_simulation(input_cs_steady, input_cc_steady, input_pv_steady, input_sst_
     w_initial = p.w_initial
     w_initial[1,0] = cc_cs_weight
     w_noise = p.w_noise
+    tau = np.array(N[0] * [tau_cs] + N[1] * [tau_cc] + N[2] * [tau_pv] + N[3] * [tau_sst])
 
     # input parameters
     amplitude = [input_cs_amplitude, input_cc_amplitude, input_pv_amplitude*sst_vary, input_sst_amplitude*pv_vary]
     steady_input = [input_cs_steady, input_cc_steady, input_pv_steady, input_sst_steady]
 
     # prepare different orientation inputs
-    degree = p.degree
-    radians = []
-    for i in degree:
-        radians.append(math.radians(i))
+    radians = p.radians
 
     # Evaluation metrics
     nan_counter, not_eq_counter = 0, 0
@@ -61,22 +61,25 @@ def run_simulation(input_cs_steady, input_cc_steady, input_pv_steady, input_sst_
 
         activity_data = []
         success = 0
+        a_data = np.cos(np.random.uniform(0, np.pi, (np.sum(N),)))
+        b_data = np.sin(np.random.uniform(0, np.pi, (np.sum(N),)))
 
         ################## iterate through different inputs ##################
         for g in radians:
             # build network here
             Sn = nm.SimpleNetwork(W_rec, W_project=W_project_initial, nonlinearity_rule=p.nonlinearity_rule,
-                                  integrator=p.integrator, delta_t=p.delta_t, tau=p.tau, Ttau=p.Ttau,
+                                  integrator=p.integrator, delta_t=p.delta_t, tau=tau, Ttau=p.Ttau,
                                   update_function=p.update_function, learning_rule=p.learning_rule,
                                   gamma=p.gamma)
 
             # define inputs
-            inputs = distributionInput(spatialF=spatialF, temporalF=temporalF, orientation=g,
-                                           spatialPhase=spatialPhase, amplitude=amplitude, T=Sn.tsteps,
-                                           steady_input=steady_input, N=N)
+            inputs = distributionInput(a_data=a_data, b_data=b_data,
+                                       spatialF=spatialF, temporalF=temporalF, orientation=g,
+                                       spatialPhase=spatialPhase, amplitude=amplitude, T=Sn.tsteps,
+                                       steady_input=steady_input, N=N)
 
             # run
-            activity, w = Sn.run(inputs, initial_values)
+            activity = Sn.run(inputs, initial_values)
             activity = np.asarray(activity)
 
             # check nan
@@ -175,7 +178,9 @@ def run_simulation(input_cs_steady, input_cc_steady, input_pv_steady, input_sst_
 
     # collect results here
     row = [input_cs_steady, input_cc_steady, input_pv_steady, input_sst_steady,
-        input_cs_amplitude, input_cc_amplitude, input_pv_amplitude, input_sst_amplitude, cc_cs_weight, sst_vary, pv_vary,
+        input_cs_amplitude, input_cc_amplitude, input_pv_amplitude, input_sst_amplitude,
+       tau_cs, tau_cc, tau_pv, tau_sst,
+       cc_cs_weight, sst_vary, pv_vary,
         spatialF, temporalF, spatialPhase,nan_counter,not_eq_counter,activity_off]
     selectivity_data = [os_mean_data, os_std_data, os_std_sim_data,
                         ds_mean_data, ds_std_data, ds_std_sim_data,
@@ -201,7 +206,9 @@ time_id = now.strftime("%m:%d:%Y_%H:%M:%S")
 title = 'data/' + p.name_sim + time_id + '.csv'
 
 row = ['cs_steady', 'cc_steady', 'pv_steady', 'sst_steady',
-        'cs_amplitude', 'cc_amplitude', 'pv_amplitude', 'sst_amplitude', 'cc_cs_weight', 'sst_vary', 'pv_vary',
+        'cs_amplitude', 'cc_amplitude', 'pv_amplitude', 'sst_amplitude',
+        'tau_cs','tau_cc','tau_pv','tau_sst',
+        'cc_cs_weight', 'sst_vary', 'pv_vary',
         'spatialF', 'temporalF', 'spatialPhase',
         'nan_counter','not_eq_counter','activity_off',
         'os_mean1','os_mean2','os_mean3','os_mean4',
@@ -234,17 +241,22 @@ run_simulation(input_cs_steady=1,input_cc_steady=0,input_pv_steady=1,input_sst_s
 
 # use joblib to parallelize simulations with different parameter values
 
-listinput = np.load('data/input_data.npy')
+listinput = np.load('data/input_data2.npy')
 
 Parallel(n_jobs=p.jobs_number)(delayed(run_simulation)(input_cs_steady, input_cc_steady, input_pv_steady,
                                                        input_sst_steady,input_cs_amplitude, input_cc_amplitude,
-                                                       input_pv_amplitude, input_sst_amplitude,cc_cs_weight,
-                                                       sst_vary,pv_vary,
+                                                       input_pv_amplitude, input_sst_amplitude,
+                                                        tau_cs,tau_cc,tau_pv,tau_sst,
+                                                       cc_cs_weight,sst_vary,pv_vary,
                                                        spatialF,temporalF, spatialPhase,start_time,title)
                     for [input_cs_steady, input_cc_steady, input_pv_steady, input_sst_steady, input_cs_amplitude,input_cc_amplitude, input_pv_amplitude,input_sst_amplitude] in listinput
                     for sst_vary in p.sst_vary
                     for pv_vary in p.pv_vary
                     for cc_cs_weight in p.cc_cs_weight
+                    for tau_cs in p.tau_cs
+                    for tau_cc in p.tau_cc
+                    for tau_pv in p.tau_pv
+                    for tau_sst in p.tau_sst
                     for spatialF in p.spatialF
                     for temporalF in p.temporalF
                     for spatialPhase in p.spatialPhase)
