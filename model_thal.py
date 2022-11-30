@@ -25,13 +25,25 @@ mpl.rcParams["axes.spines.top"] = False
 sys.path.append(abspath(''))
 
 def run_simulation(input_cs_steady, input_cc_steady, input_pv_steady, input_sst_steady, input_cs_amplitude,
-                   input_cc_amplitude, input_pv_amplitude, input_sst_amplitude, spatialF, temporalF, spatialPhase,
+                   input_cc_amplitude, input_pv_amplitude, input_sst_amplitude,
+                   weight_scalar, weight_choice,
+                   spatialF, temporalF, spatialPhase,
                    thal_degree,thal_scalars,start_time,title):
     if not(thal_scalars == [1.0,1.0] and thal_degree in [1,2,3]):
         # network parameters
         N = p.N
         prob = p.prob
         w_initial = p.w_initial
+        if weight_choice == 'it_pt':
+            w_initial[1][0] *= weight_scalar
+        elif weight_choice == 'pv_pt':
+            w_initial[2][0] *= weight_scalar
+        elif weight_choice == 'pv_it':
+            w_initial[2][1] *= weight_scalar
+        elif weight_choice == 'sst_pt':
+            w_initial[3][0] *= weight_scalar
+        elif weight_choice == 'sst_it':
+            w_initial[3][1] *= weight_scalar
         w_noise = p.w_noise
 
         # input parameters
@@ -186,6 +198,7 @@ def run_simulation(input_cs_steady, input_cc_steady, input_pv_steady, input_sst_
         # collect results here
         row = [input_cs_amplitude, input_cc_amplitude, input_pv_amplitude, input_sst_amplitude,
                thal_degree, thal_scalars,
+               weight_scalar, weight_choice,
                nan_counter,not_eq_counter]
         selectivity_data = [os_mean_data, ds_mean_data, os_paper_mean_data, a_mean_data, a_std_data]
         for selectivity_data_i in selectivity_data:
@@ -208,6 +221,7 @@ title = 'data/' + p.name_sim + time_id + '.csv'
 
 row = ['cs_amplitude', 'cc_amplitude', 'pv_amplitude', 'sst_amplitude',
        'thal_degree','thal_scalars',
+       'weight_scalar','weight_choice',
         'nan_counter','not_eq_counter',
         'os_mean1','os_mean2','os_mean3','os_mean4',
         'ds_mean1','ds_mean2','ds_mean3','ds_mean4',
@@ -230,9 +244,10 @@ start_time = time.time()
 
 Parallel(n_jobs=p.jobs_number)(delayed(run_simulation)(input_cs_steady, input_cc_steady, input_pv_steady,
                                                        input_sst_steady, input_cs_amplitude, input_cc_amplitude,
-                                                       input_pv_amplitude, input_sst_amplitude, spatialF, temporalF,
-                                                       spatialPhase,thal_degree,thal_scalars,start_time,title)
-
+                                                       input_pv_amplitude, input_sst_amplitude,
+                                                       weight_scalar, weight_choice,
+                                                       spatialF, temporalF,spatialPhase,
+                                                       thal_degree,thal_scalars,start_time,title)
                     for input_cs_steady in p.input_cs_steady
                     for input_cc_steady in p.input_cc_steady
                     for input_pv_steady in p.input_pv_steady
@@ -243,6 +258,8 @@ Parallel(n_jobs=p.jobs_number)(delayed(run_simulation)(input_cs_steady, input_cc
                     for input_sst_amplitude in p.input_sst_amplitude
                     for thal_degree in p.thal_degree
                     for thal_scalars in p.thal_scalars
+                    for weight_scalar in p.weight_scalar
+                    for weight_choice in p.weight_choice
                     for spatialF in p.spatialF
                     for temporalF in p.temporalF
                     for spatialPhase in p.spatialPhase)

@@ -32,3 +32,5 @@ configs/__pycache__/test_config.cpython-39.pyc
 *.sh
 *.pyc
 *.xlsx
+*.npy
+*.npy

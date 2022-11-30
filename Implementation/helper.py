@@ -57,6 +57,9 @@ def distributionInput_thalamus(a_data,b_data,spatialF, temporalF, orientation, s
 
         if steady_input[i] > 0.5:
             inputs_p = np.ones((T,N[i]))*amplitude[i]
+
+            # thalamus input
+            inputs_p[:,:thal_prop[i]] *= thal_scalar[i]
             """
             for t in range(T):
                 input_item = amplitude[i] * np.cos(
