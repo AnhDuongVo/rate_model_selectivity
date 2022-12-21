@@ -32,3 +32,10 @@ configs/__pycache__/test_config.cpython-39.pyc
 *.sh
 *.pyc
 *.xlsx
+*.npy
+*.npy
+data/visual_input_thal.npy
+data/visual_input.npy
+*.png
+*.png
+*.npy

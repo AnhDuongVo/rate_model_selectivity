@@ -3,7 +3,7 @@ import numpy as np
 ####### simulation parameters #######
 sim_number = 10
 jobs_number = 300
-name_sim ='thal_visual_hyperparameter_small'
+name_sim ='thal_visual_hyperparameter_three_sim'
 update_function = 'version_normal'
 integrator = 'forward_euler'
 delta_t = 0.01
@@ -32,7 +32,8 @@ prob = np.array([[0.16, 0, 0.18, 0.23],
 
 
 # number of CS, CC, PV and SST neurons
-N = np.array([90, 550, 92, 68])
+#N = np.array([90, 550, 92, 68])
+N = np.array([45, 275, 46, 34])
 
 w_noise = 0.03 # synaptic weight noise
 
@@ -46,8 +47,8 @@ degree = [0, 90, 180, 270]
 
 input_cs_steady = [0]
 input_cc_steady = [0]
-input_pv_steady = [1]
-input_sst_steady = [1]
+input_pv_steady = [0]
+input_sst_steady = [0]
 input_cs_amplitude = [6,7,8,9,10]
 input_cc_amplitude = [4,5,6,7,8,9,10]
 input_pv_amplitude = [1,2,3,4,5,6]
@@ -55,11 +56,11 @@ input_sst_amplitude = [1,2,3,4,5,6]
 spatialF = [10]
 temporalF = [50]
 spatialPhase = [1]
-weight_scalar = [0]
-weight_choice = ['None']
-#weight_scalar = [0,0.125,0.25,0.5,1,2,4,8]
-#weight_choice = ['it_pt','pv_pt','pv_it','sst_pt','sst_it']
+weight_scalar = [1,0]
+weight_choice = ['it_pt'] #['it_pt','pv_pt','pv_it','sst_pt','sst_it']
 
-thal_degree = [0,1,2,3]
-thal_scalars = [[1.0,1.0],[1.1,1.2],[1.3,1.4],[1.1,1.4],[1.3,1.6],[1.3,1.7]]
-thal_prop = (np.array([0.44,0.22,0,0])*N).astype(int)
+thal_degree = [3]
+#thal_degree = [0]
+thal_scalars = [[1.0,1.0],[1.1,1.2],[1.3,1.6],[1.3,1.7]]
+#thal_scalars = [[1.0,1.0]]
+thal_prop = (np.array([0.35,0.15,0,0])*N).astype(int)

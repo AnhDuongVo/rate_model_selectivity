@@ -29,15 +29,13 @@ def distributionInput(a_data,b_data,spatialF, temporalF, orientation, spatialPha
             for t in range(T):
                 inputs_p.append(amplitude[i] * np.cos(
                     spatialF * a_data[popu[0]:popu[1]] * np.cos(orientation) +
-                    spatialF * b_data[popu[0]:popu[1]] * np.sin(orientation) - spatialPhase)
-                                       * np.cos(temporalF) + amplitude[i])
+                    spatialF * b_data[popu[0]:popu[1]] * np.sin(orientation) - spatialPhase) + amplitude[i])
             inputs_p = np.array(inputs_p)
         else:
             for t in range(T):
                 inputs_p.append(amplitude[i] * np.cos(
                     spatialF * a_data[popu[0]:popu[1]] * np.cos(orientation) +
-                    spatialF * b_data[popu[0]:popu[1]] * np.sin(orientation) - spatialPhase)
-                                       * np.cos(temporalF * t) + amplitude[i])
+                    spatialF * b_data[popu[0]:popu[1]] * np.sin(orientation) - spatialPhase * t) + amplitude[i])
             inputs_p = np.array(inputs_p)
         i += 1
         inputs_p_all.append(inputs_p)
@@ -61,21 +59,15 @@ def distributionInput_thalamus(a_data,b_data,spatialF, temporalF, orientation, s
 
         if steady_input[i] > 0.5:
             inputs_p = np.ones((T,N[i]))*amplitude[i]
-            """
-            for t in range(T):
-                input_item = amplitude[i] * np.cos(
-                    spatialF * a_data[popu[0]:popu[1]] * np.cos(orientation) +
-                    spatialF * b_data[popu[0]:popu[1]] * np.sin(orientation) - spatialPhase)*np.cos(temporalF) + amplitude[i]
 
-                # thalamus input
-                input_item[:thal_prop[i]] *= thal_scalar[i]
+            # thalamus input
+            inputs_p[:,:thal_prop[i]] *= thal_scalar[i]
 
-                inputs_p.append(input_item)"""
         else:
             for t in range(T):
                 input_item = amplitude[i] * np.cos(
                     spatialF * a_data[popu[0]:popu[1]] * np.cos(orientation) +
-                    spatialF * b_data[popu[0]:popu[1]] * np.sin(orientation) - spatialPhase)* np.cos(temporalF * t) + amplitude[i]
+                    spatialF * b_data[popu[0]:popu[1]] * np.sin(orientation) - spatialPhase * t) + amplitude[i]
 
                 # thalamus input
                 input_item[:thal_prop[i]] *= thal_scalar[i]
