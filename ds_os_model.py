@@ -115,7 +115,7 @@ def run_simulation(input_cs_steady, input_cc_steady, input_pv_steady, input_sst_
 
         plot_activity(activity, N, 'data/figures',sim)
       
-        '''
+        
         # No need for the part simulating the changing in direction. Change it earlier also
         if success:
             # mean and std of activity
@@ -243,7 +243,7 @@ f = open(title, 'w')
 writer = csv.writer(f)
 writer.writerow(row)
 f.close()
-'''
+
 ############### start simulation ###############
 
 start_time = time.time()
